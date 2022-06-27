@@ -75,18 +75,32 @@ async function getRegionIDMapping(client_old, client_new){
 }
 
 function getLongitude(legacy_map_x){
+    if (legacy_map_x === undefined || legacy_map_x === null) return null;
     const units_per_degree = 0.00223920462; //1/5000*9/cos(36.5 deg)
     return 158 + (legacy_map_x - 3500) * units_per_degree;
 }
 
 function getLatitude(legacy_map_y){
+    if (legacy_map_y === undefined || legacy_map_y === null) return null;
     const units_per_degree = 0.00223920462; //1/5000*9/cos(36.5 deg)
     return 36.5 - (legacy_map_y - 2500) * units_per_degree;
+}
+
+function getLatLongShift(legacy_map_shift){
+    if (legacy_map_shift === undefined || legacy_map_shift === null) return null;
+    return legacy_map_shift * 0.00223920462;
+}
+
+function getTextInsideBracket(string){
+    const right_of_open_bracket = string.split('(')[1];
+    if (right_of_open_bracket === undefined) return null;
+    return right_of_open_bracket.split(')')[0];
 }
 
 export {
     getConnection,
     insertData,
     getOperatorIDMapping, getRegionIDMapping,
-    getLatitude, getLongitude,
+    getLatitude, getLongitude, getLatLongShift,
+    getTextInsideBracket,
 };

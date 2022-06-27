@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 
 const {client_old, client_new} = await $.getConnection();
 
-//Find name -> id mapping for _regions & _rail_operators data
+//Find name -> id mapping for _rail_operators data
 const operator_id_mapping = await $.getOperatorIDMapping(client_old, client_new);
 
 if (!Object.keys(operator_id_mapping).length){
