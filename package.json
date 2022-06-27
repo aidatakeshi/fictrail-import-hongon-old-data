@@ -1,0 +1,25 @@
+{
+  "name": "fry-import-old-data",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "import-regions": "node src/import-regions",
+    "import-rail-operators": "node src/import-rail-operators",
+    "import-stations": "node src/import-stations",
+    "import-rail-lines": "node src/import-rail-lines",
+    "import-train-services": "node src/import-train-services",
+    "import-train-vehicles": "node src/import-train-vehicles"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "boxen": "^7.0.0",
+    "chalk": "^5.0.1",
+    "dotenv": "^16.0.1",
+    "pg": "^8.7.3",
+    "uuid": "^8.3.2"
+  },
+  "type": "module"
+}
