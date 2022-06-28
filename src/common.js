@@ -82,13 +82,18 @@ function getLongitude(legacy_map_x){
 
 function getLatitude(legacy_map_y){
     if (legacy_map_y === undefined || legacy_map_y === null) return null;
-    const units_per_degree = 0.00223920462; //1/5000*9/cos(36.5 deg)
-    return 36.5 - (legacy_map_y - 2500) * units_per_degree;
+    const units_per_degree = -0.00223920462; //-1/5000*9/cos(36.5 deg)
+    return 36.5 + (legacy_map_y - 2500) * units_per_degree;
 }
 
-function getLatLongShift(legacy_map_shift){
-    if (legacy_map_shift === undefined || legacy_map_shift === null) return null;
-    return legacy_map_shift * 0.00223920462;
+function getLongitudeShift(legacy_map_x){
+    const units_per_degree = 0.00223920462; //1/5000*9/cos(36.5 deg)
+    return legacy_map_x * units_per_degree;
+}
+
+function getLatitudeShift(legacy_map_y){
+    const units_per_degree = -0.00223920462; //1/5000*9/cos(36.5 deg)
+    return legacy_map_y * units_per_degree;
 }
 
 function getTextInsideBracket(string){
@@ -101,6 +106,6 @@ export {
     getConnection,
     insertData,
     getOperatorIDMapping, getRegionIDMapping,
-    getLatitude, getLongitude, getLatLongShift,
+    getLongitude, getLatitude, getLongitudeShift, getLatitudeShift,
     getTextInsideBracket,
 };
