@@ -9,7 +9,8 @@
     "import-stations": "node src/import-stations",
     "import-rail-lines": "node src/import-rail-lines",
     "import-train-services": "node src/import-train-services",
-    "import-train-vehicles": "node src/import-train-vehicles"
+    "import-train-vehicles": "node src/import-train-vehicles",
+    "import-misc": "node src/import-misc"
   },
   "keywords": [],
   "author": "",
