@@ -34,7 +34,7 @@ for (let i = 0; i < vehicle_performance_groups.length; i++){
         name_l: { "en": item.name_eng || "" },
         sort: item.sort,
         remarks: item.remarks,
-        _names: `${item.name_chi||''}\n${item.name_eng||''}`,
+        _names: `|${item.name_chi||''}|${item.name_eng||''}`,
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });
@@ -81,7 +81,7 @@ for (let i = 0; i < vehicle_performance_items.length; i++){
         },
         _results: item.calc_results_other || {},
         _results_by_kph: item.calc_results_by_kph || [],
-        _names: `${item.name_chi||''}\n${item.name_eng||''}`,
+        _names: `|${item.name_chi||''}|${item.name_eng||''}`,
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });

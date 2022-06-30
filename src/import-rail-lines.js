@@ -46,7 +46,7 @@ for (let i = 0; i < line_types.length; i++){
         map_thickness: item.major ? 3 : 2,
         sort: item.sort,
         remarks: item.remarks,
-        _names: `${item.name_chi||''}\n${item.name_eng||''}`,
+        _names: `|${item.name_chi||''}|${item.name_eng||''}`,
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });
@@ -112,7 +112,7 @@ for (let line of lines){
             name_l: { "en": line_name_eng || "" },
             name_short: line_name_eng_short,
             remarks: line.remarks,
-            _names: `${line_name_chi||''}\n${line_name_eng||''}\n${line_name_eng_short||''}`,
+            _names: `|${line_name_chi||''}|${line_name_eng||''}|${line_name_eng_short||''}`,
             created_at: Math.floor(new Date().getTime() / 1000),
             created_by: 'hongon',
         });
@@ -162,7 +162,7 @@ for (let line of lines){
         remarks: line.remarks,
         max_speed_kph: line.max_speed_kph,
         sections: sections,
-        _names: `${subline_name_chi||''}\n${subline_name_eng||''}`,
+        _names: `|${subline_name_chi||''}|${subline_name_eng||''}`,
         _x_min: $.getLongitude(line.x_min),
         _x_max: $.getLongitude(line.x_max),
         _y_min: $.getLatitude(line.y_min),

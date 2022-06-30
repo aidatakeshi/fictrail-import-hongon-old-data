@@ -34,7 +34,7 @@ for (let i = 0; i < operator_types.length; i++){
         name_l: { "en": item.name_eng },
         sort: item.sort,
         remarks: item.remarks,
-        _names: `${item.name_chi||''}\n${item.name_eng||''}`,
+        _names: `|${item.name_chi||''}|${item.name_eng||''}`,
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });
@@ -68,8 +68,8 @@ for (let i = 0; i < operators.length; i++){
         remarks: item.remarks,
         color: item.color,
         color_text: item.color_text,
-        _names: `${item.name_chi||''}\n${item.name_eng||''}`
-        + `\n${item.name_chi_short||''}\n${item.name_eng_short||''}`,
+        _names: `|${item.name_chi||''}|${item.name_eng||''}`
+        + `|${item.name_chi_short||''}|${item.name_eng_short||''}`,
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });
