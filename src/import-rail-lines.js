@@ -65,7 +65,13 @@ line_groups.name_eng_short as "g_name_eng_short", lines.* from lines
 left join line_groups on lines.line_group_id = line_groups.id
 order by line_group_id`;
 const res2 = await client_old.query(query2, []);
-const lines = res2.rows;
+
+let lines = {};
+for (let item of res2.rows){
+    const group = item.line_group_id || item.id;
+    if (!lines[group]) lines[group] = [];
+    lines[group].push(item);
+}
 
 //Get line_stations
 const query3 = `select * from lines_stations order by line_id, sort`;
@@ -81,100 +87,127 @@ for (let item of res3.rows){
 await client_new.query('DELETE FROM _rail_lines WHERE project_id = \'hongon\'', []);
 await client_new.query('DELETE FROM _rail_lines_sub WHERE project_id = \'hongon\'', []);
 
-//Prepare LineGroup -> RailLine Mapping
-let line_group_mapping = {};
-let rail_line_id;
-
 //Insert to New Database
 console.log(boxen('RailLines & RailLinesSub (originally LineGroups, Lines & LineStations)'));
 
-for (let line of lines){
+for (let id in lines){
+    const rail_line_subs = lines[id];
+    const rail_line = rail_line_subs[0];
 
-    //Determine line name & sub-line name
-    const line_name_chi = line.line_group_id ? line.g_name_chi : line.name_chi;
-    const line_name_eng = line.line_group_id ? line.g_name_eng : line.name_eng;
-    const line_name_eng_short = line.g_name_eng_short || line.name_eng_short;
-    const subline_name_chi = line.line_group_id ? $.getTextInsideBracket(line.name_chi) : null;
-    const subline_name_eng = line.line_group_id ? $.getTextInsideBracket(line.name_eng) : null;
-    const line_group_id = line.line_group_id;
-
-    //Make RailLine Item
-    if (!line_group_mapping[line_group_id] || line_group_id == null){
-        rail_line_id = uuid();
-        if (line_group_id){
-            line_group_mapping[line_group_id] = rail_line_id;
-        }
-        await $.insertData(client_new, '_rail_lines', {
-            id: rail_line_id,
-            project_id: 'hongon',
-            rail_line_type_id: line_types_id_uuid[line.line_type_id],
-            name: line_name_chi,
-            name_l: { "en": line_name_eng || "" },
-            name_short: line_name_eng_short,
-            remarks: line.remarks,
-            _names: `|${line_name_chi||''}|${line_name_eng||''}|${line_name_eng_short||''}`,
-            created_at: Math.floor(new Date().getTime() / 1000),
-            created_by: 'hongon',
-        });
-        console.log(chalk.yellow(`[Line] `) + `${line_name_chi} / ${line_name_eng}`);
-    }
-
-    //Prepare Sections
-    const sections = (line_stations[line.id] || []).map(section => {
-        if (!Array.isArray(section.segments)) section.segments = [];
-        return {
-            id: section.id,
-            station_id: section.station_id,
-            no_tracks: section.no_tracks,
-            u_default: 1,
-            d_default: Math.min(2, section.no_tracks),
-            remarks: section.remarks,
-            show_arrival: section.show_arrival,
-            max_speed_kph: section.max_speed_kph,
-            min_runtime: {},
-            segments: section.segments.map(segment => ({
-                x2: $.getLongitudeShift(segment.x2),
-                y2: $.getLongitudeShift(segment.y2),
-                x: $.getLatitude(segment.x),
-                y: $.getLatitude(segment.y),
-                x1: $.getLatitudeShift(segment.x1),
-                y1: $.getLatitudeShift(segment.y1),
-            })),
-            _distance_km: null,
-            _mileage_km: null,
-            _x_min: null,
-            _x_max: null,
-            _y_min: null,
-            _y_max: null,
-        };
-    });
-
-    //Make RailLineSub Item
-    await $.insertData(client_new, '_rail_lines_sub', {
-        id: line.id,
+    //Prepare line data
+    const rail_line_name_chi = rail_line.line_group_id ? rail_line.g_name_chi : rail_line.name_chi;
+    const rail_line_name_eng = rail_line.line_group_id ? rail_line.g_name_eng : rail_line.name_eng;
+    const rail_line_name_eng_short = rail_line.g_name_eng_short || rail_line.name_eng_short;
+    const rail_line_id = uuid();
+    let rail_line_data = {
+        id: rail_line_id,
         project_id: 'hongon',
-        rail_line_id: rail_line_id,
-        rail_operator_id: operator_id_mapping[line.operator_id],
-        name: subline_name_chi,
-        name_l: { "en": subline_name_eng || "" },
-        color: line.color,
-        color_text: line.color_text,
-        remarks: line.remarks,
-        max_speed_kph: line.max_speed_kph,
-        sections: sections,
-        _names: `|${subline_name_chi||''}|${subline_name_eng||''}`,
-        _x_min: $.getLongitude(line.x_min),
-        _x_max: $.getLongitude(line.x_max),
-        _y_min: $.getLatitude(line.y_min),
-        _y_max: $.getLatitude(line.y_max),
+        rail_line_type_id: line_types_id_uuid[rail_line.line_type_id],
+        name: rail_line_name_chi,
+        name_l: { "en": rail_line_name_eng || "" },
+        name_short: rail_line_name_eng_short,
+        remarks: rail_line.remarks,
+        _names: `|${rail_line_name_chi||''}|${rail_line_name_eng||''}|${rail_line_name_eng_short||''}`,
+        _rail_operator_ids: '',
+        _length_km: 0,
+        _x_min: null, _x_max: null,
+        _y_min: null, _y_max: null,
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
-    });
-    if (subline_name_chi || subline_name_eng){
-        console.log(chalk.blue(`[Sub] ${subline_name_chi} / ${subline_name_eng}`));
-    }else{
-        console.log(chalk.blue(`[Sub] #`));
+    };
+    console.log(chalk.yellow(`[Line] `) + `${rail_line_name_chi} / ${rail_line_name_eng}`);
+
+    //For each line_sub
+    let sub_items = [];
+    for (let rail_line_sub of rail_line_subs){
+
+        //Prepare Sections
+        const sections = (line_stations[rail_line.id] || []).map(section => {
+            if (!Array.isArray(section.segments)) section.segments = [];
+            return {
+                id: section.id,
+                station_id: section.station_id,
+                no_tracks: section.no_tracks,
+                u_default: 1,
+                d_default: Math.min(2, section.no_tracks),
+                remarks: section.remarks,
+                show_arrival: section.show_arrival,
+                max_speed_kph: section.max_speed_kph,
+                min_runtime: {},
+                segments: section.segments.map(segment => ({
+                    x2: $.getLongitudeShift(segment.x2),
+                    y2: $.getLongitudeShift(segment.y2),
+                    x: $.getLatitude(segment.x),
+                    y: $.getLatitude(segment.y),
+                    x1: $.getLatitudeShift(segment.x1),
+                    y1: $.getLatitudeShift(segment.y1),
+                })),
+                _distance_km: section.distance_km,
+                _mileage_km: section.mileage_km,
+                _x_min: !section.segments.length ? null
+                        : $.getLatitude(Math.min(...section.segments.map(segment => segment.x))),
+                _x_max: !section.segments.length ? null
+                        : $.getLatitude(Math.max(...section.segments.map(segment => segment.x))),
+                _y_min: !section.segments.length ? null
+                        : $.getLongitude(Math.min(...section.segments.map(segment => segment.y))),
+                _y_max: !section.segments.length ? null
+                        : $.getLongitude(Math.max(...section.segments.map(segment => segment.y))),
+            };
+        });
+        
+        //Make RailLineSub Item
+        const subline_name_chi = rail_line.line_group_id ? $.getTextInsideBracket(rail_line_sub.name_chi) : null;
+        const subline_name_eng = rail_line.line_group_id ? $.getTextInsideBracket(rail_line_sub.name_eng) : null;
+        const rail_operator_id = operator_id_mapping[rail_line_sub.operator_id];
+        let rail_line_sub_data = {
+            id: rail_line_sub.id,
+            project_id: 'hongon',
+            rail_line_id: rail_line_id,
+            rail_operator_id: rail_operator_id,
+            name: subline_name_chi,
+            name_l: { "en": subline_name_eng || "" },
+            color: rail_line_sub.color,
+            color_text: rail_line_sub.color_text,
+            remarks: rail_line_sub.remarks,
+            max_speed_kph: rail_line_sub.max_speed_kph,
+            sections: sections,
+            _names: rail_line_data._names + `|${subline_name_chi||''}|${subline_name_eng||''}`,
+            _length_km: rail_line_sub.length_km,
+            _x_min: $.getLongitude(rail_line_sub.x_min),
+            _x_max: $.getLongitude(rail_line_sub.x_max),
+            _y_min: $.getLatitude(rail_line_sub.y_min),
+            _y_max: $.getLatitude(rail_line_sub.y_max),
+            _station_ids: sections.map((section) => section.station_id)
+            .map(id => (id ? `|${id}` : '')).join(''),
+            created_at: Math.floor(new Date().getTime() / 1000),
+            created_by: 'hongon',
+        };
+        sub_items.push(rail_line_sub_data);
+
+        if (subline_name_chi || subline_name_eng){
+            console.log(chalk.blue(`[Sub] ${subline_name_chi} / ${subline_name_eng}`));
+        }else{
+            console.log(chalk.blue(`[Sub] #`));
+        }
+        
+        //Insert to _rail_lines_sub
+        await $.insertData(client_new, '_rail_lines_sub', rail_line_sub_data);
+
     }
+
+    //Aggregate Sub-line Data to Line
+    rail_line_data._length_km = sub_items.map(item => item._length_km)
+    .filter(item => Number.isFinite(item))
+    .reduce((prev, curr) => (prev + curr), 0);
+    rail_line_data._x_min = Math.min(...sub_items.map(item => item._x_min));
+    rail_line_data._x_max = Math.max(...sub_items.map(item => item._x_max));
+    rail_line_data._y_min = Math.min(...sub_items.map(item => item._y_min));
+    rail_line_data._y_max = Math.max(...sub_items.map(item => item._y_max));
+    rail_line_data._rail_operator_ids = sub_items.map(item => `|${item.rail_operator_id}`)
+    .filter((val, index, self) => (self.indexOf(val) === index)).join('');
+
+    //Insert to _rail_lines
+    await $.insertData(client_new, '_rail_lines', rail_line_data);
 
 }
 
