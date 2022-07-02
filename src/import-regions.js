@@ -34,7 +34,9 @@ for (let i = 0; i < prefecture_areas.length; i++){
         name_l: { "en": item.name_eng },
         sort: item.sort,
         remarks: item.remarks,
-        _names: `|${item.name_chi||''}|${item.name_eng||''}`,
+        _data: {
+            name_search: `|${item.name_chi||''}|${item.name_eng||''}`,
+        },
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });
@@ -69,9 +71,15 @@ for (let i = 0; i < prefectures.length; i++){
         name_short_l: { "en": item.name_eng_short },
         sort: item.sort,
         remarks: item.remarks,
-        _names: `|${item.name_chi||''}${item.name_chi_suffix||''}`
-        + `|${item.name_eng||''} ${item.name_eng_suffix||''}`
-        + `|${item.name_chi_short||''}|${item.name_eng_short||''}`,
+        _polygons: {
+            land: [],
+        },
+        _data: {
+            land_area: null,
+            name_search: `|${item.name_chi||''}${item.name_chi_suffix||''}`
+            + `|${item.name_eng||''} ${item.name_eng_suffix||''}`
+            + `|${item.name_chi_short||''}|${item.name_eng_short||''}`,
+        },
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });

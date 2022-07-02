@@ -44,7 +44,9 @@ for (let i = 0; i < stations.length; i++){
         is_signal_only: item.is_signal_only,
         is_in_use: !item.is_abandoned,
         remarks: item.remarks,
-        _names: `|${item.name_chi||''}|${item.name_eng||''}`,
+        _data: {
+            name_search: `|${item.name_chi||''}|${item.name_eng||''}`,
+        },
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });

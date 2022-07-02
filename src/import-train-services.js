@@ -48,7 +48,9 @@ for (let i = 0; i < train_types.length; i++){
         color_text: item.color_text,
         sort: item.sort,
         remarks: item.remarks,
-        _names: `|${item.name_chi||''}|${item.name_eng||''}`,
+        _data: {
+            _name_search: `|${item.name_chi||''}|${item.name_eng||''}`,
+        },
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });
@@ -81,7 +83,9 @@ for (let i = 0; i < train_names.length; i++){
         color: item.color,
         color_text: item.color_text,
         remarks: item.remarks,
-        _names: `|${item.name_chi||''}|${item.name_eng||''}`,
+        _data: {
+            name_search: `|${item.name_chi||''}|${item.name_eng||''}`,
+        },
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });

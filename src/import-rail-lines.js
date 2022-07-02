@@ -46,7 +46,9 @@ for (let i = 0; i < line_types.length; i++){
         map_thickness: item.major ? 3 : 2,
         sort: item.sort,
         remarks: item.remarks,
-        _names: `|${item.name_chi||''}|${item.name_eng||''}`,
+        _data: {
+            name_search: `|${item.name_chi||''}|${item.name_eng||''}`,
+        },
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     });
@@ -107,11 +109,13 @@ for (let id in lines){
         name_l: { "en": rail_line_name_eng || "" },
         name_short: rail_line_name_eng_short,
         remarks: rail_line.remarks,
-        _names: `|${rail_line_name_chi||''}|${rail_line_name_eng||''}|${rail_line_name_eng_short||''}`,
-        _rail_operator_ids: '',
-        _length_km: 0,
-        _x_min: null, _x_max: null,
-        _y_min: null, _y_max: null,
+        _data: {
+            length_km: 0,
+            x_min: null, x_max: null,
+            y_min: null, y_max: null,
+            name_search: `|${rail_line_name_chi||''}|${rail_line_name_eng||''}|${rail_line_name_eng_short||''}`,
+            rail_operator_ids: '',
+        },
         created_at: Math.floor(new Date().getTime() / 1000),
         created_by: 'hongon',
     };
@@ -119,6 +123,9 @@ for (let id in lines){
 
     //For each line_sub
     let sub_items = [];
+    let x = [];
+    let y = [];
+    let lengths = [];
     for (let rail_line_sub of rail_line_subs){
 
         //Prepare Sections
@@ -159,6 +166,13 @@ for (let id in lines){
         const subline_name_chi = rail_line.line_group_id ? $.getTextInsideBracket(rail_line_sub.name_chi) : null;
         const subline_name_eng = rail_line.line_group_id ? $.getTextInsideBracket(rail_line_sub.name_eng) : null;
         const rail_operator_id = operator_id_mapping[rail_line_sub.operator_id];
+        const x_min = $.getLongitude(rail_line_sub.x_min);
+        const x_max = $.getLongitude(rail_line_sub.x_max);
+        const y_min = $.getLatitude(rail_line_sub.y_min);
+        const y_max = $.getLatitude(rail_line_sub.y_max);
+        x.push(x_min, x_max);
+        y.push(y_min, y_max);
+        lengths.push(rail_line_sub.length_km);
         let rail_line_sub_data = {
             id: rail_line_sub.id,
             project_id: 'hongon',
@@ -171,14 +185,14 @@ for (let id in lines){
             remarks: rail_line_sub.remarks,
             max_speed_kph: rail_line_sub.max_speed_kph,
             sections: sections,
-            _names: rail_line_data._names + `|${subline_name_chi||''}|${subline_name_eng||''}`,
-            _length_km: rail_line_sub.length_km,
-            _x_min: $.getLongitude(rail_line_sub.x_min),
-            _x_max: $.getLongitude(rail_line_sub.x_max),
-            _y_min: $.getLatitude(rail_line_sub.y_min),
-            _y_max: $.getLatitude(rail_line_sub.y_max),
-            _station_ids: sections.map((section) => section.station_id)
-            .map(id => (id ? `|${id}` : '')).join(''),
+            _data: {
+                length_km: rail_line_sub.length_km,
+                x_min, x_max, y_min, y_max,
+                name_search: rail_line_data._data.name_search
+                + `|${subline_name_chi||''}|${subline_name_eng||''}`,
+                station_ids: sections.map((section) => section.station_id)
+                .map(id => (id ? `|${id}` : '')).join(''),
+            },
             created_at: Math.floor(new Date().getTime() / 1000),
             created_by: 'hongon',
         };
@@ -196,15 +210,14 @@ for (let id in lines){
     }
 
     //Aggregate Sub-line Data to Line
-    rail_line_data._length_km = sub_items.map(item => item._length_km)
-    .filter(item => Number.isFinite(item))
+    rail_line_data._data.length_km = lengths.filter(Number.isFinite)
     .reduce((prev, curr) => (prev + curr), 0);
-    rail_line_data._x_min = Math.min(...sub_items.map(item => item._x_min));
-    rail_line_data._x_max = Math.max(...sub_items.map(item => item._x_max));
-    rail_line_data._y_min = Math.min(...sub_items.map(item => item._y_min));
-    rail_line_data._y_max = Math.max(...sub_items.map(item => item._y_max));
-    rail_line_data._rail_operator_ids = sub_items.map(item => `|${item.rail_operator_id}`)
+    rail_line_data._data.rail_operator_ids = sub_items.map(item => `|${item.rail_operator_id}`)
     .filter((val, index, self) => (self.indexOf(val) === index)).join('');
+    rail_line_data._data.x_min = Math.min(...x.filter(Number.isFinite));
+    rail_line_data._data.x_max = Math.max(...x.filter(Number.isFinite));
+    rail_line_data._data.y_min = Math.min(...y.filter(Number.isFinite));
+    rail_line_data._data.y_max = Math.max(...y.filter(Number.isFinite));
 
     //Insert to _rail_lines
     await $.insertData(client_new, '_rail_lines', rail_line_data);
