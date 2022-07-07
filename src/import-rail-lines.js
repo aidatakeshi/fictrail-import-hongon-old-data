@@ -144,7 +144,7 @@ for (let id in lines){
                 segments: section.segments.map(segment => ({
                     x2: $.getLongitudeShift(segment.x2),
                     y2: $.getLongitudeShift(segment.y2),
-                    x: $.getLatitude(segment.x),
+                    x: $.getLongitude(segment.x),
                     y: $.getLatitude(segment.y),
                     x1: $.getLatitudeShift(segment.x1),
                     y1: $.getLatitudeShift(segment.y1),
@@ -152,13 +152,13 @@ for (let id in lines){
                 _distance_km: section.distance_km,
                 _mileage_km: section.mileage_km,
                 _x_min: !section.segments.length ? null
-                        : $.getLatitude(Math.min(...section.segments.map(segment => segment.x))),
+                        : $.getLongitude(Math.min(...section.segments.map(segment => segment.x))),
                 _x_max: !section.segments.length ? null
-                        : $.getLatitude(Math.max(...section.segments.map(segment => segment.x))),
+                        : $.getLongitude(Math.max(...section.segments.map(segment => segment.x))),
                 _y_min: !section.segments.length ? null
-                        : $.getLongitude(Math.min(...section.segments.map(segment => segment.y))),
+                        : $.getLatitude(Math.min(...section.segments.map(segment => segment.y))),
                 _y_max: !section.segments.length ? null
-                        : $.getLongitude(Math.max(...section.segments.map(segment => segment.y))),
+                        : $.getLatitude(Math.max(...section.segments.map(segment => segment.y))),
             };
         });
         
