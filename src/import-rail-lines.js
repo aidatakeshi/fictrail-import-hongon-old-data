@@ -155,9 +155,9 @@ for (let id in lines){
                         : $.getLongitude(Math.min(...section.segments.map(segment => segment.x))),
                 _x_max: !section.segments.length ? null
                         : $.getLongitude(Math.max(...section.segments.map(segment => segment.x))),
-                _y_min: !section.segments.length ? null
-                        : $.getLatitude(Math.min(...section.segments.map(segment => segment.y))),
                 _y_max: !section.segments.length ? null
+                        : $.getLatitude(Math.min(...section.segments.map(segment => segment.y))),
+                _y_min: !section.segments.length ? null
                         : $.getLatitude(Math.max(...section.segments.map(segment => segment.y))),
             };
         });
@@ -168,8 +168,8 @@ for (let id in lines){
         const rail_operator_id = operator_id_mapping[rail_line_sub.operator_id];
         const x_min = $.getLongitude(rail_line_sub.x_min);
         const x_max = $.getLongitude(rail_line_sub.x_max);
-        const y_min = $.getLatitude(rail_line_sub.y_min);
-        const y_max = $.getLatitude(rail_line_sub.y_max);
+        const y_max = $.getLatitude(rail_line_sub.y_min);
+        const y_min = $.getLatitude(rail_line_sub.y_max);
         x.push(x_min, x_max);
         y.push(y_min, y_max);
         lengths.push(rail_line_sub.length_km);
@@ -212,6 +212,7 @@ for (let id in lines){
     //Aggregate Sub-line Data to Line
     rail_line_data._data.length_km = lengths.filter(Number.isFinite)
     .reduce((prev, curr) => (prev + curr), 0);
+    rail_line_data._data.length_km = parseFloat(rail_line_data._data.length_km.toFixed(1));
     rail_line_data._data.rail_operator_ids = sub_items.map(item => `|${item.rail_operator_id}`)
     .filter((val, index, self) => (self.indexOf(val) === index)).join('');
     rail_line_data._data.x_min = Math.min(...x.filter(Number.isFinite));
